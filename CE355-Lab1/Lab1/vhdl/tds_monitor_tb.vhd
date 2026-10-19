@@ -12,6 +12,12 @@ architecture behavioral of tds_monitor_tb is
     -- TODO: Add signal declarations 
     ----------------------------------------------------------------
     signal adc  : std_logic_vector(11 downto 0);
+    
+    signal hex0 : std_logic_vector(6 downto 0);
+    signal hex1 : std_logic_vector(6 downto 0);
+    signal hex2 : std_logic_vector(6 downto 0);
+    signal hex3 : std_logic_vector(6 downto 0);
+    signal led  : std_logic;
 
 
     ----------------------------------------------------------------
@@ -19,7 +25,18 @@ architecture behavioral of tds_monitor_tb is
     --
     -- TODO: Add component declaration for tds_monitor
     ----------------------------------------------------------------
-    
+
+    component tds_monitor is
+        port(
+            adc  : in  std_logic_vector(11 downto 0);
+
+            hex0 : out std_logic_vector(6 downto 0);
+            hex1 : out std_logic_vector(6 downto 0);
+            hex2 : out std_logic_vector(6 downto 0);
+            hex3 : out std_logic_vector(6 downto 0);
+            led  : out std_logic
+        );
+    end component tds_monitor;
 
 begin
 
@@ -28,6 +45,15 @@ begin
     --
     -- TODO: Instantiate the tds_monitor component and connect the signals
     ----------------------------------------------------------------
+    dut : tds_monitor
+        port map(
+        adc => adc,
+        hex0 => hex0,
+        hex1 => hex1,
+        hex2 => hex2,
+        hex3 => hex3,
+        led => led
+    );
     
 
     ----------------------------------------------------------------
