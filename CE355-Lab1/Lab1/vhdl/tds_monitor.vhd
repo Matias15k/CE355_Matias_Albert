@@ -94,6 +94,14 @@ architecture structural of tds_monitor is
         );
     end component tds_converter;
 
+
+begin
+
+    ----------------------------------------------------------------
+    -- Component Instantiations
+    --
+    -- TODO: Add component instantiations
+    ----------------------------------------------------------------
     -- 5.3
     tds_converter_inst : tds_converter
         generic map(
@@ -142,15 +150,6 @@ architecture structural of tds_monitor is
             dout => hex3
         );
 
-
-
-begin
-
-    ----------------------------------------------------------------
-    -- Component Instantiations
-    --
-    -- TODO: Add component instantiations
-    ----------------------------------------------------------------
 
 
 end architecture structural;
