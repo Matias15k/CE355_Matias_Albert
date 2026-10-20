@@ -67,6 +67,13 @@ begin
     ----------------------------------------------------------------
     with adc(11 downto 9) select
         tds_i <= 0 + shift_right(offset, 2) + shift_right(offset, 4) when "000",
+                 160 + shift_right(offset, 2) + shift_right(offset, 5) when "001",
+                 304 + shift_right(offset, 2) + shift_right(offset, 4) when "010",
+                 461 + shift_right(offset, 2) + shift_right(offset, 3) when "011",
+                 659 + shift_right(offset, 1) + shift_right(offset, 7) when "100",
+                 926 + shift_right(offset, 1) + shift_right(offset, 2) when "101",
+                 1289 + offset when "110",
+                 1778 + offset + shift_right(offset, 2) when "111",
                  (others => '0') when others;
 
     tds <= tds_i;
