@@ -78,6 +78,49 @@ begin
         ----------------------------------------------------------------
         -- TODO: Add more test cases for different ADC values 
         ----------------------------------------------------------------
+        -- test 2
+        adc <= X"001";
+        wait for 20 ns;
+
+        -- test 3
+        adc <= X"080";
+        wait for 20 ns;
+
+        -- test 4
+        adc <= X"12C";
+        wait for 20 ns;
+
+        -- test 5
+        adc <= X"1FF";
+        wait for 20 ns;
+
+        -- test 6
+        adc <= X"200";
+        wait for 20 ns;
+
+        -- test 7 
+        adc <= X"2BC";
+        wait for 20 ns;
+
+        -- test 8
+        adc <= X"343";
+        wait for 20 ns;
+
+        -- test 9
+        adc <= X"344";
+        wait for 20 ns;
+
+        -- test 10
+        adc <= X"3FF";
+        wait for 20 ns;
+
+        -- test 11
+        adc <= X"C00";
+        wait for 20 ns;
+
+        -- test 12
+        adc <= X"FFF";
+        wait for 20 ns;
 
         -- wait forever
         wait;
