@@ -19,6 +19,16 @@ begin
     -- using a WHEN-ELSE statement to map the 4-bit binary input to 
     -- the 7-segment output.
     -- ---------------------------------------------------------------      
-	dout <= "1111111"; -- blank
+	dout <= "1000000" when din = "0000" else  -- 0
+	        "1111001" when din = "0001" else  -- 1
+	        "0100100" when din = "0010" else  -- 2
+	        "0110000" when din = "0011" else  -- 3
+	        "0011001" when din = "0100" else  -- 4
+	        "0010010" when din = "0101" else  -- 5
+	        "0000010" when din = "0110" else  -- 6
+	        "1111000" when din = "0111" else  -- 7
+	        "0000000" when din = "1000" else  -- 8
+	        "0010000" when din = "1001" else  -- 9
+	        "1111111";                        -- blank
     
 end architecture data_flow;            
