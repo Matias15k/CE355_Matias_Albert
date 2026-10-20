@@ -87,21 +87,22 @@ architecture structural of tds_monitor is
     end component bcd;
 
     component tds_converter is
+        generic(
+        TDS_THRESHOLD : integer := 500
+        );
         port(
         adc : in std_logic_vector(11 downto 0);
-        tds : out std_logic_vector(7 downto 0);
+        tds : out std_logic_vector(11 downto 0);
         threshold : out std_logic
         );
     end component tds_converter;
-
 
 begin
 
     ----------------------------------------------------------------
     -- Component Instantiations
-    --
-    -- TODO: Add component instantiations
     ----------------------------------------------------------------
+
     -- 5.3
     tds_converter_inst : tds_converter
         generic map(
@@ -149,7 +150,5 @@ begin
             din  => digit3,
             dout => hex3
         );
-
-
 
 end architecture structural;
