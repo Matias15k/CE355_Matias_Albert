@@ -26,7 +26,26 @@ architecture structure of robotic_hand is
     --
     -- TODO: declare the gesture_controller and pwm_servo components here.
     ----------------------------------------------------------------
-    
+    component gesture_controller is
+        port(
+            clk : in std_logic;
+            reset : in std_logic;
+            sel : in std_logic_vector(9 downto 0);
+            pos : out std_logic_vector(14 downto 0)
+        );
+    end component;
+
+    component pwm_servo is
+        generic(
+            INVERT : boolean := false
+        );
+        port(
+            clk : in std_logic;
+            reset : in std_logic;
+            deg : in std_logic_vector(2 downto 0);
+            pwm : out std_logic
+        );
+    end component;
     
 begin
 
@@ -39,6 +58,27 @@ begin
     -- reversed, so its travel is mirrored.  Use the THUMB_SERVO
     -- constant to identify the thumb servo in the generate loop.
     ----------------------------------------------------------------
+    gesture_inst : gesture_controller
+        port map(
+            clk => clk,
+            reset => rst,
+            sel => sw,
+            pos => positions
+        );
+
+    pwm_servos : for i in 0 to 4 generate
+    begin
+        servo_i : pwm_servo
+            generic map(
+                INVERT => (i = THUMB_SERVO)
+            )
+            port map(
+                clk => clk,
+                reset => rst,
+                deg => positions(3*i+2 downto 3*i),
+                pwm => pwm(i)
+            );
+    end generate pwm_servos;
 
     
     ----------------------------------------------------------------
@@ -46,6 +86,7 @@ begin
     --
     -- TODO: Add concurrent statements to drive the led outputs. 
     ----------------------------------------------------------------
+    led <= sw;
     rst <= not rst_n;
 
 end architecture structure;

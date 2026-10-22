@@ -41,6 +41,78 @@ architecture rtl of gesture_controller is
         4 => "000"
     );
 
+    constant pinky_pose : servo_pose_t := (
+        0 => "100",
+        1 => "000",
+        2 => "000",
+        3 => "000",
+        4 => "000"
+    );
+
+    constant ring_pose : servo_pose_t := (
+        0 => "000",
+        1 => "100",
+        2 => "000",
+        3 => "000",
+        4 => "000"
+    );
+
+    constant middle_pose : servo_pose_t := (
+        0 => "000",
+        1 => "000",
+        2 => "100",
+        3 => "000",
+        4 => "000"
+    );
+
+    constant index_pose : servo_pose_t := (
+        0 => "000",
+        1 => "000",
+        2 => "000",
+        3 => "100",
+        4 => "000"
+    );
+
+    constant thumb_pose : servo_pose_t := (
+        0 => "000",
+        1 => "000",
+        2 => "000",
+        3 => "000",
+        4 => "100"
+    );
+
+    constant open_pose : servo_pose_t := (
+        0 => "100",
+        1 => "100",
+        2 => "100",
+        3 => "100",
+        4 => "100"
+    );
+
+    constant half_open_pose : servo_pose_t := (
+        0 => "010",
+        1 => "010",
+        2 => "010",
+        3 => "010",
+        4 => "010"
+    );
+
+    constant ok_pose : servo_pose_t := (
+        0 => "100",
+        1 => "100",
+        2 => "100",
+        3 => "000",
+        4 => "000"
+    );
+
+    constant rock_pose : servo_pose_t := (
+        0 => "100",
+        1 => "000",
+        2 => "000",
+        3 => "100",
+        4 => "000"
+    );
+
     ----------------------------------------------------------------
     -- Signal declarations
     ----------------------------------------------------------------
@@ -113,6 +185,71 @@ begin
     begin
 
         active_pose <= closed_pose;  -- default to closed pose
+
+        if sel(0) = '1' then
+            active_pose <= closed_pose;
+
+        elsif sel(1) = '1' then
+            active_pose <= half_open_pose;
+
+        elsif sel(2) = '1' then
+            active_pose <= ok_pose;
+
+        elsif sel(3) = '1' then
+            active_pose <= rock_pose;
+
+        elsif sel(4) = '1' then
+            active_pose <= pinky_pose;
+
+        elsif sel(5) = '1' then
+            active_pose <= ring_pose;
+
+        elsif sel(6) = '1' then
+            active_pose <= middle_pose;
+
+        elsif sel(7) = '1' then
+            active_pose <= index_pose;
+
+        elsif sel(8) = '1' then
+            if step mod 2 = 0 then
+                active_pose <= closed_pose;
+            else
+                active_pose <= open_pose;
+            end if;
+
+        elsif sel(9) = '1' then
+            case step is
+                when 0 =>
+                    active_pose <= closed_pose;
+
+                when 1 | 9 =>
+                    active_pose <= thumb_pose;
+
+                when 2 | 8 =>
+                    active_pose <= mask_pose(thumb_pose, index_pose);
+
+                when 3 | 7 =>
+                    active_pose <= mask_pose(
+                        mask_pose(thumb_pose, index_pose),
+                        middle_pose
+                    );
+
+                when 4 | 6 =>
+                    active_pose <= mask_pose(
+                        mask_pose(thumb_pose, index_pose),
+                        mask_pose(middle_pose, ring_pose)
+                    );
+
+                when 5 =>
+                    active_pose <= open_pose;
+
+                when others =>
+                    active_pose <= closed_pose;
+            end case;
+
+        else
+            active_pose <= closed_pose;
+        end if;
 
     end process gesture_process;
 
