@@ -36,6 +36,14 @@ begin
     -- 
     -- TODO: instantiate the robotic_hand component 
     ----------------------------------------------------------------
+    dut : robotic_hand
+        port map(
+            clk => clk,
+            rst_n => rst_n,
+            sw => sw,
+            pwm => pwm,
+            led => led
+        );
 
     ----------------------------------------------------------------
     -- Clock and Reset Processes
@@ -43,6 +51,22 @@ begin
     -- TODO: add processes to generate the clock and reset
     ----------------------------------------------------------------
     rst_n <= not rst;
+
+    clock_process : process
+    begin
+        clk <= '0';
+        wait for 10 ns;
+        clk <= '1';
+        wait for 10 ns;
+    end process clock_process;
+
+    reset_process : process
+    begin
+        rst <= '1';
+        wait for 100 ns;
+        rst <= '0';
+        wait;
+    end process reset_process;
     
 
     ----------------------------------------------------------------
@@ -55,6 +79,17 @@ begin
     ----------------------------------------------------------------
     stimulus : process
     begin
+        sw <= (others => '0');
+        wait for 200 ns;
+
+        for i in 0 to sw'high loop
+            switches := (others => '0');
+            switches(i) := '1';
+            sw <= switches;
+
+            wait for 100 ms;
+        end loop;
+
         sw <= (others => '0');
 
         -- wait forever
