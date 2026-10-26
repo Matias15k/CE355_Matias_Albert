@@ -63,7 +63,7 @@ begin
     reset_process : process
     begin
         rst <= '1';
-        wait for 100 ns;
+        wait for 10 ns;
         rst <= '0';
         wait;
     end process reset_process;
@@ -78,16 +78,17 @@ begin
     -- long enough time to see the hand perform the "ok" gesture.
     ----------------------------------------------------------------
     stimulus : process
+        variable switches : std_logic_vector(9 downto 0);
     begin
         sw <= (others => '0');
-        wait for 200 ns;
+        wait for 10 ns;
 
         for i in 0 to sw'high loop
             switches := (others => '0');
             switches(i) := '1';
             sw <= switches;
 
-            wait for 100 ms;
+            wait for 10 ns;
         end loop;
 
         sw <= (others => '0');

@@ -91,18 +91,108 @@ architecture structure of drum_pad is
     ----------------------------------------------------------------
     -- Signal declarations
     ----------------------------------------------------------------
+    signal pulse              : std_logic;
+    signal metronome_trigger  : std_logic;
+    signal voice_trigger      : std_logic_vector(NUM_VOICES-1 downto 0);
+    signal voice_address      : address_array_t;
+    signal rom_sample         : sample_array_t;
+    signal voice_sample       : sample_array_t;
+    signal voice_samples_flat : std_logic_vector(NUM_VOICES*DATA_WIDTH-1 downto 0);
+    signal mixed_audio        : std_logic_vector(DATA_WIDTH-1 downto 0);
 
     ----------------------------------------------------------------
     -- Component declarations
     ----------------------------------------------------------------
-    
+    component audio_pulse is
+        generic(
+            CLK_FREQUENCY   : natural := 50_000_000;
+            SAMPLE_RATE_HZ  : natural := 48_000
+        );
+        port(
+            clk   : in  std_logic;
+            rst   : in  std_logic;
+            pulse : out std_logic
+        );
+    end component;
+
+    component metronome is
+        generic(
+            SAMPLE_RATE_HZ : natural := 48_000
+        );
+        port(
+            clk     : in  std_logic;
+            rst     : in  std_logic;
+            pulse   : in  std_logic;
+            enable  : in  std_logic;
+            speed   : in  std_logic_vector(1 downto 0);
+            trigger : out std_logic;
+            led     : out std_logic
+        );
+    end component;
+
+    component drum_voice is
+        generic(
+            ADDR_WIDTH   : natural := 10;
+            DATA_SIZE    : natural := 1024
+        );
+        port(
+            clk         : in  std_logic;
+            rst         : in  std_logic;
+            pulse       : in  std_logic;
+            trigger     : in  std_logic;
+            rom_address : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+            active      : out std_logic
+        );
+    end component;
+
+    component audio_mixer is
+        generic(
+            NUM_VOICES  : natural := 5;
+            DATA_WIDTH  : natural := 16
+        );
+        port(
+            clk           : in  std_logic;
+            rst           : in  std_logic;
+            pulse         : in  std_logic;
+            voice_samples : in  std_logic_vector(NUM_VOICES * DATA_WIDTH - 1 downto 0);
+            audio         : out std_logic_vector(DATA_WIDTH-1 downto 0)
+        );
+    end component;
 
 begin
 
     ----------------------------------------------------------------
-    -- TODO: Instatiate the audio_pulse, metronome, and drum_voice 
-    -- components. 
+    -- TODO: Instatiate the audio_pulse, metronome, and drum_voice
+    -- components.
     ----------------------------------------------------------------
+    audio_pulse_inst : audio_pulse
+        generic map(
+            CLK_FREQUENCY  => CLK_FREQUENCY,
+            SAMPLE_RATE_HZ => SAMPLE_RATE_HZ
+        )
+        port map(
+            clk   => clk,
+            rst   => rst,
+            pulse => pulse
+        );
+
+    metronome_inst : metronome
+        generic map(
+            SAMPLE_RATE_HZ => SAMPLE_RATE_HZ
+        )
+        port map(
+            clk     => clk,
+            rst     => rst,
+            pulse   => pulse,
+            enable  => sw(0),
+            speed   => sw(2 downto 1),
+            trigger => metronome_trigger,
+            led     => led
+        );
+
+    -- voices 0-3 are played by the keys, voice 4 by the metronome
+    voice_trigger(3 downto 0) <= key;
+    voice_trigger(4)          <= metronome_trigger;
 
     ----------------------------------------------------------------
     -- TODO: Implement drum voices using the for-generate statement. 
@@ -114,7 +204,21 @@ begin
     -- be connected to the rom_process for reading the sample data 
     -- from the ROMs.
     ----------------------------------------------------------------
-
+    gen_voices : for i in 0 to NUM_VOICES-1 generate
+        voice_inst : drum_voice
+            generic map(
+                ADDR_WIDTH => ROM_ADDR_WIDTH,
+                DATA_SIZE  => ROM_DEPTH
+            )
+            port map(
+                clk         => clk,
+                rst         => rst,
+                pulse       => pulse,
+                trigger     => voice_trigger(i),
+                rom_address => voice_address(i),
+                active      => open
+            );
+    end generate gen_voices;
 
     ----------------------------------------------------------------
     -- TODO: Implement the ROM lookup process. It should read the 
@@ -131,7 +235,39 @@ begin
     ----------------------------------------------------------------
     rom_process : process(clk)
     begin
+        if ( rising_edge(clk) ) then
+            rom_sample(0) <= KICK_ROM(to_integer(unsigned(voice_address(0))));
+            rom_sample(1) <= SNARE_ROM(to_integer(unsigned(voice_address(1))));
+            rom_sample(2) <= HIHAT_ROM(to_integer(unsigned(voice_address(2))));
+            rom_sample(3) <= CRASH_ROM(to_integer(unsigned(voice_address(3))));
+            rom_sample(4) <= CLICK_ROM(to_integer(unsigned(voice_address(4))));
+
+            voice_sample <= rom_sample;
+        end if;
     end process rom_process;
+
+    ----------------------------------------------------------------
+    -- Pack the voice samples into the flattened mixer bus.
+    ----------------------------------------------------------------
+    pack_voices : for i in 0 to NUM_VOICES-1 generate
+        voice_samples_flat((i+1)*DATA_WIDTH-1 downto i*DATA_WIDTH) <= voice_sample(i);
+    end generate pack_voices;
+
+    audio_mixer_inst : audio_mixer
+        generic map(
+            NUM_VOICES => NUM_VOICES,
+            DATA_WIDTH => DATA_WIDTH
+        )
+        port map(
+            clk           => clk,
+            rst           => rst,
+            pulse         => pulse,
+            voice_samples => voice_samples_flat,
+            audio         => mixed_audio
+        );
+
+    sample_pulse <= pulse;
+    audio_out    <= mixed_audio;
 
 
 end architecture structure;

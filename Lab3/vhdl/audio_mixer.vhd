@@ -46,7 +46,9 @@ begin
     -- TODO: Use for-generate to unpack the flattened voice sample bus into 
     -- a per-voice array.
     -------------------------------------------------------------------------
-    voice_array <= (others => (others => '0'));
+    unpack_voices : for i in 0 to NUM_VOICES-1 generate
+        voice_array(i) <= voice_samples((i+1)*DATA_WIDTH-1 downto i*DATA_WIDTH);
+    end generate unpack_voices;
 
     ----------------------------------------------------------------
     -- Mix voices at the audio sample pulse.
@@ -57,6 +59,7 @@ begin
     -- pipeline has settled long before the next pulse captures it.
     ----------------------------------------------------------------
     mixer_process : process(clk, rst)
+        variable sum : signed(SUM_WIDTH-1 downto 0);
     begin
         if ( rst = '1' ) then
             mix_sum    <= (others => '0');
@@ -69,10 +72,22 @@ begin
             -- only be updated on the pulse signal; otherwise it should hold its value.
             --------------------------------------------------------------------
             -- Stage 1: sum the voices.
-            mix_sum <= (others => '0');
+            sum := (others => '0');
+            for i in 0 to NUM_VOICES-1 loop
+                sum := sum + resize(signed(voice_array(i)), SUM_WIDTH);
+            end loop;
+            mix_sum <= sum;
 
             -- Stage 2: saturate the output to avoid overflow at the sample pulse.
-            audio <= (others => '0');
+            if ( pulse = '1' ) then
+                if ( mix_sum > AUDIO_MAX ) then
+                    audio <= std_logic_vector(to_signed(AUDIO_MAX, DATA_WIDTH));
+                elsif ( mix_sum < AUDIO_MIN ) then
+                    audio <= std_logic_vector(to_signed(AUDIO_MIN, DATA_WIDTH));
+                else
+                    audio <= std_logic_vector(resize(mix_sum, DATA_WIDTH));
+                end if;
+            end if;
         end if;
     end process;
 

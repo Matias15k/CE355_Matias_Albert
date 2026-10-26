@@ -25,7 +25,7 @@
 set_global_assignment -name TOP_LEVEL_ENTITY drum_pad_system
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 26.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:21:34  SEPTEMBER 10, 2026"
-set_global_assignment -name LAST_QUARTUS_VERSION "26.1.1 Pro Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "25.1.1 Pro Edition"
 set_global_assignment -name SDC_FILE drum_pad.sdc
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
@@ -77,3 +77,35 @@ set_instance_assignment -name IO_STANDARD "1.2-V" -to AUD_DACDAT
 #============================================================
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to FPGA_I2C_SCL
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to FPGA_I2C_SDA
+
+#============================================================
+# Pin assignments
+#============================================================
+set_location_assignment PIN_CH128 -to clk
+set_location_assignment PIN_BM78 -to rst_n
+set_location_assignment PIN_BW59 -to key_n[0]
+set_location_assignment PIN_CA59 -to key_n[1]
+set_location_assignment PIN_CF71 -to key_n[2]
+set_location_assignment PIN_CH71 -to key_n[3]
+set_location_assignment PIN_BM62 -to sw[0]
+set_location_assignment PIN_BP62 -to sw[1]
+set_location_assignment PIN_BH62 -to sw[2]
+set_location_assignment PIN_CC71 -to led_n
+set_location_assignment PIN_CK97 -to AUD_XCK
+set_location_assignment PIN_CL97 -to AUD_BCLK
+set_location_assignment PIN_CK94 -to AUD_DACLRCK
+set_location_assignment PIN_CL88 -to AUD_DACDAT
+set_location_assignment PIN_BF120 -to FPGA_I2C_SCL
+set_location_assignment PIN_BH118 -to FPGA_I2C_SDA
+
+#============================================================
+# Source files
+#============================================================
+set_global_assignment -name VHDL_FILE ../vhdl/audio_package.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/audio_pulse.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/drum_voice.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/metronome.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/audio_mixer.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/drum_pad.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/audio_codec.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/drum_pad_system.vhd

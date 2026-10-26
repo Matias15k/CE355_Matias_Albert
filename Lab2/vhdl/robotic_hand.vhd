@@ -20,7 +20,7 @@ architecture structure of robotic_hand is
     constant THUMB_SERVO : natural := 0;
 
     signal rst : std_logic;
-
+    signal positions : std_logic_vector(14 downto 0);
     ----------------------------------------------------------------
     -- Component Declarations
     --
@@ -68,9 +68,12 @@ begin
 
     pwm_servos : for i in 0 to 4 generate
     begin
+        -- on the hardware, "000" drives the four fingers open, so their
+        -- travel is mirrored to make "000" closed.  the thumb is mounted
+        -- reversed relative to the fingers, so it is left un-mirrored.
         servo_i : pwm_servo
             generic map(
-                INVERT => (i = THUMB_SERVO)
+                INVERT => (i /= THUMB_SERVO)
             )
             port map(
                 clk => clk,

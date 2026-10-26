@@ -24,7 +24,11 @@
 set_global_assignment -name TOP_LEVEL_ENTITY robotic_hand
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 26.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:21:34  SEPTEMBER 10, 2026"
-set_global_assignment -name LAST_QUARTUS_VERSION "26.1.1 Pro Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "25.1.1 Pro Edition"
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_FILE ../vhdl/robotic_hand.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/pwm_servo.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/gesture_controller.vhd
 set_global_assignment -name SDC_FILE robotic_hand.sdc
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
@@ -79,3 +83,30 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to pwm[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to pwm[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to pwm[3]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to pwm[4]
+set_location_assignment PIN_CH128 -to clk
+set_location_assignment PIN_BM78 -to rst_n
+set_location_assignment PIN_BM62 -to sw[0]
+set_location_assignment PIN_BP62 -to sw[1]
+set_location_assignment PIN_BH62 -to sw[2]
+set_location_assignment PIN_BH59 -to sw[3]
+set_location_assignment PIN_BM59 -to sw[4]
+set_location_assignment PIN_BK59 -to sw[5]
+set_location_assignment PIN_BU62 -to sw[6]
+set_location_assignment PIN_CF59 -to sw[7]
+set_location_assignment PIN_BU59 -to sw[8]
+set_location_assignment PIN_BR59 -to sw[9]
+set_location_assignment PIN_CC71 -to led[0]
+set_location_assignment PIN_BH78 -to led[1]
+set_location_assignment PIN_CH69 -to led[2]
+set_location_assignment PIN_CF69 -to led[3]
+set_location_assignment PIN_CA62 -to led[4]
+set_location_assignment PIN_CC62 -to led[5]
+set_location_assignment PIN_CF62 -to led[6]
+set_location_assignment PIN_BM69 -to led[7]
+set_location_assignment PIN_CA71 -to led[8]
+set_location_assignment PIN_BR62 -to led[9]
+set_location_assignment PIN_BK31 -to pwm[0]
+set_location_assignment PIN_BE43 -to pwm[1]
+set_location_assignment PIN_BF29 -to pwm[2]
+set_location_assignment PIN_BF40 -to pwm[3]
+set_location_assignment PIN_BK28 -to pwm[4]

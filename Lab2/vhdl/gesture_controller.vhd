@@ -181,34 +181,41 @@ begin
     -- Use the mask_pose function to combine poses for gestures that require
     -- multiple fingers to be open. The default pose should be closed_pose.
     -----------------------------------------------------------------------
-    gesture_process: process()
+    gesture_process: process(all)
     begin
 
         active_pose <= closed_pose;  -- default to closed pose
 
+        -- fingers are counted thumb first, matching the wave sequence.
         if sel(0) = '1' then
-            active_pose <= closed_pose;
+            active_pose <= thumb_pose;
 
         elsif sel(1) = '1' then
-            active_pose <= half_open_pose;
+            active_pose <= mask_pose(thumb_pose, index_pose);
 
         elsif sel(2) = '1' then
-            active_pose <= ok_pose;
+            active_pose <= mask_pose(
+                mask_pose(thumb_pose, index_pose),
+                middle_pose
+            );
 
         elsif sel(3) = '1' then
-            active_pose <= rock_pose;
+            active_pose <= mask_pose(
+                mask_pose(thumb_pose, index_pose),
+                mask_pose(middle_pose, ring_pose)
+            );
 
         elsif sel(4) = '1' then
-            active_pose <= pinky_pose;
+            active_pose <= open_pose;
 
         elsif sel(5) = '1' then
-            active_pose <= ring_pose;
+            active_pose <= half_open_pose;
 
         elsif sel(6) = '1' then
-            active_pose <= middle_pose;
+            active_pose <= ok_pose;
 
         elsif sel(7) = '1' then
-            active_pose <= index_pose;
+            active_pose <= rock_pose;
 
         elsif sel(8) = '1' then
             if step mod 2 = 0 then

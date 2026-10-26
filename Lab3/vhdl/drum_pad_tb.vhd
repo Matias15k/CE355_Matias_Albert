@@ -161,10 +161,30 @@ begin
         ---------------------------------------------------------------
         -- TODO: Add enable the different keys to test the different
         -- drum voices. Each key should be pressed, released, then wait
-        -- at least 1 second before the next key press. Then try 
-        -- multiple keys at once to test polyphony. 
+        -- at least 1 second before the next key press. Then try
+        -- multiple keys at once to test polyphony.
         ---------------------------------------------------------------
-        
+        -- Each remaining pad on its own, metronome at 120 BPM.
+        sw <= "101";
+        for i in 1 to 3 loop
+            wait until rising_edge(clk);
+            key(i) <= '1';
+            wait for CLK_PERIOD_NS;
+            key(i) <= '0';
+            wait for 1000 ms;
+        end loop;
+
+        -- Polyphony: all four pads at once, metronome at 60 BPM, to
+        -- test the mixer's saturation.
+        sw <= "001";
+        wait until rising_edge(clk);
+        key <= "1111";
+        wait for CLK_PERIOD_NS;
+        key <= "0000";
+        wait for 1000 ms;
+
+        -- Metronome off.
+        sw <= "000";
         wait for 1000 ms;
         sim_done <= true;
         wait;

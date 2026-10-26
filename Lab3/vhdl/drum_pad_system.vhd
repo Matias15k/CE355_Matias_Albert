@@ -67,21 +67,99 @@ architecture structure of drum_pad_system is
     ----------------------------------------------------------------
     -- Signal declarations
     ----------------------------------------------------------------
+    signal rst          : std_logic;
+    signal key          : std_logic_vector(3 downto 0);
+    signal led          : std_logic;
+    signal sample_pulse : std_logic;
+    signal audio_sample : std_logic_vector(DATA_WIDTH-1 downto 0);
 
     ----------------------------------------------------------------
     -- Component Declarations
     ----------------------------------------------------------------
+    component drum_pad is
+        generic(
+            DATA_WIDTH     : natural := 16;
+            CLK_FREQUENCY  : natural := 50_000_000;
+            SAMPLE_RATE_HZ : natural := 32_000
+        );
+        port(
+            clk          : in  std_logic;
+            rst          : in  std_logic;
+            key          : in  std_logic_vector(3 downto 0);
+            sw           : in  std_logic_vector(2 downto 0);
+            led          : out std_logic;
+            sample_pulse : out std_logic;
+            audio_out    : out std_logic_vector(15 downto 0)
+        );
+    end component;
+
+    component audio_codec is
+        generic(
+            DATA_WIDTH     : natural := 16;
+            CLK_FREQUENCY  : natural := 50_000_000;
+            SAMPLE_RATE_HZ : natural := 32_000
+        );
+        port(
+            clk          : in  std_logic;
+            rst          : in  std_logic;
+            pulse        : in  std_logic;
+            audio        : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+            AUD_XCK      : out std_logic;
+            AUD_BCLK     : out std_logic;
+            AUD_DACLRCK  : out std_logic;
+            AUD_DACDAT   : out std_logic;
+            FPGA_I2C_SCL : out std_logic;
+            FPGA_I2C_SDA : inout std_logic
+        );
+    end component;
 
 begin
 
     ------------------------------------------------------------------
     -- TODO: concurrent signal assignments for the reset, key and led
-    -- signals, which are all active low. 
+    -- signals, which are all active low.
     ------------------------------------------------------------------
+    rst   <= not rst_n;
+    key   <= not key_n;
+    led_n <= not led;
 
     ------------------------------------------------------------------
-    -- TODO: Component instantiations of the drum_pad and audio_codec. 
+    -- TODO: Component instantiations of the drum_pad and audio_codec.
     ------------------------------------------------------------------
+    drum_pad_inst : drum_pad
+        generic map(
+            DATA_WIDTH     => DATA_WIDTH,
+            CLK_FREQUENCY  => CLK_FREQUENCY,
+            SAMPLE_RATE_HZ => SAMPLE_RATE_HZ
+        )
+        port map(
+            clk          => clk,
+            rst          => rst,
+            key          => key,
+            sw           => sw,
+            led          => led,
+            sample_pulse => sample_pulse,
+            audio_out    => audio_sample
+        );
+
+    audio_codec_inst : audio_codec
+        generic map(
+            DATA_WIDTH     => DATA_WIDTH,
+            CLK_FREQUENCY  => CLK_FREQUENCY,
+            SAMPLE_RATE_HZ => SAMPLE_RATE_HZ
+        )
+        port map(
+            clk          => clk,
+            rst          => rst,
+            pulse        => sample_pulse,
+            audio        => audio_sample,
+            AUD_XCK      => AUD_XCK,
+            AUD_BCLK     => AUD_BCLK,
+            AUD_DACLRCK  => AUD_DACLRCK,
+            AUD_DACDAT   => AUD_DACDAT,
+            FPGA_I2C_SCL => FPGA_I2C_SCL,
+            FPGA_I2C_SDA => FPGA_I2C_SDA
+        );
 
 
 end architecture structure;
