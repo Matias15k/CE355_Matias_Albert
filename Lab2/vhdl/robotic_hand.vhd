@@ -89,7 +89,7 @@ begin
     --
     -- TODO: Add concurrent statements to drive the led outputs. 
     ----------------------------------------------------------------
-    led <= sw;
+    led <= not sw;
     rst <= not rst_n;
 
 end architecture structure;

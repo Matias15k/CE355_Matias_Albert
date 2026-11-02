@@ -423,12 +423,14 @@ begin
                                 wait until rising_edge(clock);
                             end loop;
 
-                            -- On the last clock, take the color that has
-                            -- been sitting there all period and ask for
-                            -- the next pixel.
-                            img(row * IMG_W + col) := pixel;
+                            -- On the last clock, ask for the next pixel and
+                            -- take the color on that same edge, as hdmi
+                            -- does.  MAX_ITER + 2 = N_ENGINES * PIX_DIV
+                            -- leaves no spare clock: any earlier and the
+                            -- engine's output register has not settled.
                             pixel_req <= '1';
                             wait until rising_edge(clock);
+                            img(row * IMG_W + col) := pixel;
                             pixel_req <= '0';
 
                         end loop;

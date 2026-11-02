@@ -172,7 +172,11 @@ architecture rtl of mandel_engine_bank is
     signal slot : natural range 0 to N_ENGINES - 1;
 
     -- register the frame_sync input so its leading edge can be detected.
-    signal frame_sync_r : std_logic;
+    -- Detected one clock late, on purpose: viewport moves x0, y0 and
+    -- pixel_step on the leading edge itself, so loading on that same edge
+    -- would start the frame from the previous frame's corner.
+    signal frame_sync_r  : std_logic;
+    signal frame_sync_rr : std_logic;
 
     -- High when a point is handed to an engine.
     signal dispatch : std_logic;
@@ -203,7 +207,7 @@ begin
         if ( engine_ready(slot) = '1' ) then
             if ( pixel_req = '1' ) then -- display is asking for a pixel
                 dispatch_v := '1';
-            elsif ( frame_sync_r = '1' and col < N_ENGINES ) then -- new frame, head start
+            elsif ( frame_sync_rr = '1' and col < N_ENGINES ) then -- new frame, head start
                 dispatch_v := '1';
             end if;
         end if;
@@ -232,9 +236,11 @@ begin
             col          <= 0;
             slot         <= 0;
             frame_sync_r <= '0';
+            frame_sync_rr <= '0';
 
         elsif rising_edge(clock) then
             frame_sync_r <= frame_sync;
+            frame_sync_rr <= frame_sync_r;
 
             -- Check if the engines are not keeping up with the display. 
             assert not ( pixel_req = '1' and engine_ready(slot) = '0' )
@@ -244,7 +250,7 @@ begin
                 severity failure;
 
             -- A new frame starts when frame_sync goes from 0 -> 1
-            if ( frame_sync = '1' and frame_sync_r = '0' ) then
+            if ( frame_sync_r = '1' and frame_sync_rr = '0' ) then
                 -- go back to the top left corner. 
                 cx_r <= x0;
                 cy_r <= y0;
@@ -279,8 +285,8 @@ begin
     -- Note that you must use the registered values cx_r and cy_r to the engines, 
     -- because they must be consistent across all engines for the entire iteration. 
     ----------------------------------------------------------------------
-    engine_gen : for i in 0 to N_ENGINES - 1 generate
-        engine_inst : mandel_engine
+    gen_engines : for i in 0 to N_ENGINES - 1 generate
+        u_engine : mandel_engine
             generic map (
                 MAX_ITER => MAX_ITER
             )
@@ -296,7 +302,7 @@ begin
                 ready => engine_ready(i),
                 pixel => engine_pixel(i)
             );
-    end generate engine_gen;
+    end generate gen_engines;
   
 
 end architecture rtl;

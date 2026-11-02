@@ -189,7 +189,7 @@ begin
     -- TODO: Instantiate and wire together the viewport and 
     -- mandel_engine_bank components.
     ----------------------------------------------------------------------
-    viewport_inst : viewport
+    u_viewport : viewport
         generic map (
             IMG_W => IMG_W,
             IMG_H => IMG_H,
@@ -210,7 +210,7 @@ begin
             pixel_step => pixel_step
         );
 
-    engine_bank_inst : mandel_engine_bank
+    u_engine_bank : mandel_engine_bank
         generic map (
             IMG_W => IMG_W,
             N_ENGINES => N_ENGINES,

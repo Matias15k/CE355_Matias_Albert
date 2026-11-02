@@ -1,0 +1,4 @@
+# Ignore anything new in each lab's sim and syn folders.
+# Files already committed there stay tracked, so edits to them still show up.
+Lab*/sim/*
+Lab*/syn/*

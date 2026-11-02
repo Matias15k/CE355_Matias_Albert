@@ -169,6 +169,9 @@ begin
     --------------------------------------------------------------------------
 
     clocked_process : process (clock, reset) is
+        variable xx, yy, xy : std_logic_vector(2 * COORD_WIDTH - 1 downto 0);
+        variable xx_scaled, yy_scaled, xy_scaled : std_logic_vector(COORD_WIDTH - 1 downto 0);
+        variable magnitude_sq : std_logic_vector(COORD_WIDTH + GUARD_BITS downto 0);
     begin
         if ( reset = '1' ) then
             x <= (others => '0');
@@ -199,35 +202,36 @@ begin
 
                 ready <= '0';
             elsif clock_count < MAX_ITER then
-                xx := signed(x) * signed(x);
-                yy := signed(y) * signed(y);
-                xy := signed(x) * signed(y);
+                xx := std_logic_vector(signed(x) * signed(x));
+                yy := std_logic_vector(signed(y) * signed(y));
+                xy := std_logic_vector(signed(x) * signed(y));
 
                 xx_scaled := xx(SCALE_BITS + COORD_WIDTH - 1 downto SCALE_BITS);
                 yy_scaled := yy(SCALE_BITS + COORD_WIDTH - 1 downto SCALE_BITS);
                 xy_scaled := xy(SCALE_BITS + COORD_WIDTH - 1 downto SCALE_BITS);
 
-                magnitude_sq := resize(unsigned(xx(
+                magnitude_sq := std_logic_vector(
+                                resize(unsigned(xx(
                                 SCALE_BITS + COORD_WIDTH + GUARD_BITS - 1 downto SCALE_BITS
                             )), COORD_WIDTH + GUARD_BITS + 1) +
                                 resize(unsigned(yy(
                                 SCALE_BITS + COORD_WIDTH + GUARD_BITS - 1 downto SCALE_BITS
-                            )), COORD_WIDTH + GUARD_BITS + 1);
-                
+                            )), COORD_WIDTH + GUARD_BITS + 1));
+
                 if escaped = '0' then
-                    if magnitude_sq > resize(
+                    if unsigned(magnitude_sq) > resize(
                             unsigned(ESCAPE_SQ),
                             COORD_WIDTH + GUARD_BITS + 1) then
                         escaped <= '1';
                     else
                         -- x_new = x^2 - y^2 + cx
                         x <= std_logic_vector(
-                            xx_scaled - yy_scaled + signed(cx_r)
+                            signed(xx_scaled) - signed(yy_scaled) + signed(cx_r)
                         );
 
                         -- y_new = 2xy + cy
                         y <= std_logic_vector(
-                            xy_scaled + xy_scaled + signed(cy_r)
+                            signed(xy_scaled) + signed(xy_scaled) + signed(cy_r)
                         );
 
                         escape_count <= std_logic_vector(

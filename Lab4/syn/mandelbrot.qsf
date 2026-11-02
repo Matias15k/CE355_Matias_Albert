@@ -25,7 +25,7 @@
 set_global_assignment -name TOP_LEVEL_ENTITY mandelbrot_system
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 26.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:21:34  SEPTEMBER 10, 2026"
-set_global_assignment -name LAST_QUARTUS_VERSION "26.1.1 Pro Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "25.1.1 Pro Edition"
 set_global_assignment -name SDC_FILE mandelbrot.sdc
 set_global_assignment -name IP_FILE VIDEO_PLL.ip
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
@@ -98,3 +98,54 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_tx_d[23]
 #============================================================
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to i2c_scl -entity mandelbrot_system
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to i2c_sda -entity mandelbrot_system
+
+#============================================================
+# Pin Config
+#============================================================
+
+set_global_assignment -name VHDL_FILE ../vhdl/mandel_pkg.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/mandel_engine.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/mandel_engine_bank.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/viewport.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/mandelbrot.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/hdmi.vhd
+set_global_assignment -name VHDL_FILE ../vhdl/mandelbrot_system.vhd
+
+set_location_assignment PIN_BM71 -to clk_50
+set_location_assignment PIN_BM78 -to reset_n
+set_location_assignment PIN_BW59 -to keys_n[0]
+set_location_assignment PIN_CA59 -to keys_n[1]
+set_location_assignment PIN_CF71 -to keys_n[2]
+set_location_assignment PIN_CH71 -to keys_n[3]
+set_location_assignment PIN_BM62 -to keys_n[4]
+set_location_assignment PIN_CH59 -to hdmi_tx_clk
+set_location_assignment PIN_BR109 -to hdmi_tx_hs
+set_location_assignment PIN_BE107 -to hdmi_tx_vs
+set_location_assignment PIN_BK109 -to hdmi_tx_de
+set_location_assignment PIN_CD134 -to hdmi_tx_d[0]
+set_location_assignment PIN_CD135 -to hdmi_tx_d[1]
+set_location_assignment PIN_CG134 -to hdmi_tx_d[2]
+set_location_assignment PIN_CG135 -to hdmi_tx_d[3]
+set_location_assignment PIN_CH132 -to hdmi_tx_d[4]
+set_location_assignment PIN_CF132 -to hdmi_tx_d[5]
+set_location_assignment PIN_CF128 -to hdmi_tx_d[6]
+set_location_assignment PIN_CK134 -to hdmi_tx_d[7]
+set_location_assignment PIN_CL125 -to hdmi_tx_d[8]
+set_location_assignment PIN_CF121 -to hdmi_tx_d[9]
+set_location_assignment PIN_CF118 -to hdmi_tx_d[10]
+set_location_assignment PIN_BU118 -to hdmi_tx_d[11]
+set_location_assignment PIN_BR118 -to hdmi_tx_d[12]
+set_location_assignment PIN_CA118 -to hdmi_tx_d[13]
+set_location_assignment PIN_BW118 -to hdmi_tx_d[14]
+set_location_assignment PIN_CL128 -to hdmi_tx_d[15]
+set_location_assignment PIN_CL130 -to hdmi_tx_d[16]
+set_location_assignment PIN_CK125 -to hdmi_tx_d[17]
+set_location_assignment PIN_CK128 -to hdmi_tx_d[18]
+set_location_assignment PIN_BF111 -to hdmi_tx_d[19]
+set_location_assignment PIN_BH109 -to hdmi_tx_d[20]
+set_location_assignment PIN_BE115 -to hdmi_tx_d[21]
+set_location_assignment PIN_BF115 -to hdmi_tx_d[22]
+set_location_assignment PIN_BU109 -to hdmi_tx_d[23]
+set_location_assignment PIN_BE111 -to hdmi_tx_int
+set_location_assignment PIN_BF120 -to i2c_scl
+set_location_assignment PIN_BH118 -to i2c_sda
