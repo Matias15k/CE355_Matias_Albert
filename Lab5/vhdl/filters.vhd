@@ -92,6 +92,83 @@ architecture rtl of filters is
         );
     end component;
 
+    component filter_gray is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_cartonnify is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_edge is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_invert is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_sepia is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_swap is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
+    component filter_threshold is
+        port (
+            clock     : in  std_logic;
+            reset     : in  std_logic;
+            data_in   : in  std_logic_vector(19 downto 0);
+            valid_in  : in  std_logic;
+            data_out  : out std_logic_vector(23 downto 0);
+            valid_out : out std_logic
+        );
+    end component;
+
 
     --------------------------------------------------------------------
     -- Constants
@@ -122,8 +199,29 @@ begin
     -- be set high when the data from the block RAM is valid, which is one 
     -- clock cycle after the address is presented.
     ----------------------------------------------------------------------
-    rd_addr <= (others => '0');
-    valid_in <= '0';
+    address_process : process (reset, clock) is
+    begin
+        if reset = '1' then
+            addr_count <= 0;
+            valid_in <= '0';
+
+        elsif rising_edge(clock) then
+            valid_in <= pixel_req and not frame_sync;
+
+            if frame_sync = '1' then
+                addr_count <= 0;
+
+            elsif pixel_req = '1' then
+                if addr_count = N_PIXELS - 1 then
+                    addr_count <= 0;
+                else
+                    addr_count <= addr_count + 1;
+                end if;
+            end if;
+        end if;
+    end process address_process;
+
+    rd_addr <= std_logic_vector(to_unsigned(addr_count, rd_addr'length));
 
     ----------------------------------------------------------------------
     -- TODO: Implement a for-generate loop to add more filters along with 
@@ -142,13 +240,89 @@ begin
     --     7 edge        shows the edges only, in white on black.
     --
     ----------------------------------------------------------------------
-    u_filter_pass : filter_pass
-        port map ( clock => clock, 
-                   reset => reset,
-                   data_in => rd_data, 
-                   valid_in => valid_in,
-                   data_out => pixels(0), 
-                   valid_out => valids(0) );
+    gen_filters : for i in 0 to N_FILTERS - 1 generate
+
+        gen_pass : if i = 0 generate
+            u_filter_pass : filter_pass
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_pass;
+
+        gen_gray : if i = 1 generate
+            u_filter_gray : filter_gray
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_gray;
+
+        gen_sepia : if i = 2 generate
+            u_filter_sepia : filter_sepia
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_sepia;
+
+        gen_swap : if i = 3 generate
+            u_filter_swap : filter_swap
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_swap;
+
+        gen_invert : if i = 4 generate
+            u_filter_invert : filter_invert
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_invert;
+
+        gen_threshold : if i = 5 generate
+            u_filter_threshold : filter_threshold
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_threshold;
+
+        gen_cartoonify : if i = 6 generate
+            u_filter_cartoonify : filter_cartoonify
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_cartoonify;
+
+        gen_edge : if i = 7 generate
+            u_filter_edge : filter_edge
+                port map ( clock => clock,
+                           reset => reset,
+                           data_in => rd_data,
+                           valid_in => valid_in,
+                           data_out => pixels(i),
+                           valid_out => valids(i) );
+        end generate gen_edge;
+
+    end generate gen_filters;
 
     ----------------------------------------------------------------------
     -- TODO: Implement a clocked process to step the filter index up or 
@@ -175,8 +349,43 @@ begin
     -- Both keys down does nothing, which is the honest answer to being
     -- asked to go two ways at once.
     ----------------------------------------------------------------------
-    filter_sel <= 0;
-    key_cnt    <= 0;
+    button_process : process (reset, clock) is
+    begin
+        if reset = '1' then
+            filter_sel <= 0;
+            key_cnt <= 0;
+
+        elsif rising_edge(clock) then
+
+            if keys_n = "11" or keys_n = "00" then
+                key_cnt <= 0;
+
+            elsif key_cnt < DEBOUNCE_TICKS then
+                key_cnt <= key_cnt + 1;
+
+                if key_cnt = DEBOUNCE_TICKS - 1 then
+
+                    if keys_n = "10" then
+                        -- up
+                        if filter_sel = N_FILTERS - 1 then
+                            filter_sel <= 0;
+                        else
+                            filter_sel <= filter_sel + 1;
+                        end if;
+
+                    elsif keys_n = "01" then
+                        -- down
+                        if filter_sel = 0 then
+                            filter_sel <= N_FILTERS - 1;
+                        else
+                            filter_sel <= filter_sel - 1;
+                        end if;
+                    end if;
+
+                end if;
+            end if;
+        end if;
+    end process button_process;
 
     ----------------------------------------------------------------------
     -- Multiplexer to select one of the N_FILTERS pixels.

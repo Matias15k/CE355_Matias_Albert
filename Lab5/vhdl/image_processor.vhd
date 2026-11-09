@@ -84,10 +84,81 @@ architecture structural of image_processor is
     --------------------------------------------------------------------
     -- Component Declarations
     --------------------------------------------------------------------
+    component video_store is
+        generic (
+            ADDR_W : natural := 19
+        );
+        port (
+            clock     : in std_logic;
+            reset     : in std_logic;
+            cam_clk   : in std_logic;
+            cam_vs    : in std_logic;
+            cam_de    : in std_logic;
+            cam_pixel : in std_logic_vector(23 downto 0);
+            wr_addr   : out std_logic_vector(ADDR_W - 1 downto 0);
+            wr_data   : out std_logic_vector(19 downto 0);
+            wr_en     : out std_logic
+        );
+    end component;
+
+    component bram is
+        generic (
+            BRAM_BUFFER_SIZE : integer := 1024;
+            BRAM_ADDR_WIDTH  : integer := 10;
+            BRAM_DATA_WIDTH  : integer := 32
+        );
+        port (
+            clock   : in std_logic;
+            rd_addr : in std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
+            wr_addr : in std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
+            wr_en   : in std_logic;
+            dout    : out std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
+            din     : in std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0)
+        );
+    end component;
+
+    component filters is
+        generic (
+            IMG_W          : natural := 640;
+            IMG_H          : natural := 480;
+            ADDR_W         : natural := 19;
+            N_FILTERS      : natural := 8;
+            DEBOUNCE_TICKS : natural := 2**20
+        );
+        port (
+            clock       : in std_logic;
+            reset       : in std_logic;
+            keys_n      : in std_logic_vector(1 downto 0);
+            filter_num  : out std_logic_vector(7 downto 0);
+            rd_addr     : out std_logic_vector(ADDR_W - 1 downto 0);
+            rd_data     : in std_logic_vector(19 downto 0);
+            frame_sync  : in std_logic;
+            pixel_req   : in std_logic;
+            pixel       : out std_logic_vector(23 downto 0);
+            pixel_valid : out std_logic
+        );
+    end component;
+
+    component digit_display is
+        port (
+            clock : in std_logic;
+            reset : in std_logic;
+            din   : in std_logic_vector(3 downto 0);
+            dout  : out std_logic_vector(6 downto 0)
+        );
+    end component;
 
     --------------------------------------------------------------------
     -- Signal Declarations
     --------------------------------------------------------------------
+    signal wr_addr : std_logic_vector(ADDR_W - 1 downto 0);
+    signal wr_data : std_logic_vector(19 downto 0);
+    signal wr_en   : std_logic;
+
+    signal rd_addr : std_logic_vector(ADDR_W - 1 downto 0);
+    signal rd_data : std_logic_vector(19 downto 0);
+
+    signal filter_num : std_logic_vector(7 downto 0);
 
 begin
 
@@ -95,5 +166,78 @@ begin
     -- TODO: Instantiate and wire together the components: 
     -- video_store, bram, filters, and digital display components.
     --------------------------------------------------------------------
+
+    -- Camera pixels -> BRAM write signals
+    u_video_store : video_store
+        generic map (
+            ADDR_W => ADDR_W
+        )
+        port map (
+            clock     => clock,
+            reset     => reset,
+            cam_clk   => cam_clk,
+            cam_vs    => cam_vs,
+            cam_de    => cam_de,
+            cam_pixel => cam_pixel,
+            wr_addr   => wr_addr,
+            wr_data   => wr_data,
+            wr_en     => wr_en
+        );
+
+    -- Frame buffer
+    u_bram : bram
+        generic map (
+            BRAM_BUFFER_SIZE => BRAM_BUFFER_SIZE,
+            BRAM_ADDR_WIDTH  => BRAM_ADDR_WIDTH,
+            BRAM_DATA_WIDTH  => BRAM_DATA_WIDTH
+        )
+        port map (
+            clock   => clock,
+            wr_addr => wr_addr,
+            wr_en   => wr_en,
+            din     => wr_data,
+            rd_addr => rd_addr,
+            dout    => rd_data
+        );
+
+    -- Read BRAM and apply image filters
+    u_filters : filters
+        generic map (
+            IMG_W          => IMG_W,
+            IMG_H          => IMG_H,
+            ADDR_W         => ADDR_W,
+            N_FILTERS      => N_FILTERS,
+            DEBOUNCE_TICKS => DEBOUNCE_TICKS
+        )
+        port map (
+            clock       => clock,
+            reset       => reset,
+            keys_n      => keys_n,
+            filter_num  => filter_num,
+            rd_addr     => rd_addr,
+            rd_data     => rd_data,
+            frame_sync  => frame_sync,
+            pixel_req   => pixel_req,
+            pixel       => pixel,
+            pixel_valid => pixel_valid
+        );
+
+    -- Lower hexadecimal digit
+    u_hex0 : digit_display
+        port map (
+            clock => clock,
+            reset => reset,
+            din   => filter_num(3 downto 0),
+            dout  => hex0
+        );
+
+    -- Upper hexadecimal digit
+    u_hex1 : digit_display
+        port map (
+            clock => clock,
+            reset => reset,
+            din   => filter_num(7 downto 4),
+            dout  => hex1
+        );
 
 end architecture structural;

@@ -39,12 +39,32 @@ architecture behavior of bram is
     ------------------------------------------------------------------------
     -- Type and signal declarations
     ------------------------------------------------------------------------
+    type ram_t is array (0 to BRAM_BUFFER_SIZE - 1) of
+        std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
+
+    signal ram : ram_t;
+
+    signal rd_addr_reg :
+        std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 
 begin
 
     ------------------------------------------------------------------------
     -- TODO: Implement the clocked read and write process
     ------------------------------------------------------------------------
+	process (clock)
+    begin
+        if rising_edge(clock) then
+            if wr_en = '1' then
+                ram(to_integer(unsigned(wr_addr))) <= din;
+            end if;
+
+            rd_addr_reg <= rd_addr;
+
+        end if;
+    end process;
+
+    dout <= ram(to_integer(unsigned(rd_addr_reg)));
 
 
 end architecture behavior;

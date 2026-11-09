@@ -293,12 +293,53 @@ begin
     ---------------------------------------------------------------------
     -- TODO: Instantiate the image_processor
     ---------------------------------------------------------------------
-
+    dut : image_processor
+        generic map (
+            IMG_W          => IMG_W,
+            IMG_H          => IMG_H,
+            ADDR_W         => ADDR_W,
+            N_FILTERS      => N_FILTERS,
+            DEBOUNCE_TICKS => DEBOUNCE_TICKS
+        )
+        port map (
+            clock       => clock,
+            reset       => reset,
+            cam_clk     => cam_clk,
+            cam_vs      => cam_vs,
+            cam_de      => cam_de,
+            cam_pixel   => cam_pixel,
+            keys_n      => keys_n,
+            hex0        => hex0,
+            hex1        => hex1,
+            frame_sync  => frame_sync,
+            pixel_req   => pixel_req,
+            pixel       => pixel,
+            pixel_valid => pixel_valid
+        );
 
     ---------------------------------------------------------------------
     -- TODO: Implement the clock processes for the system and camera clocks
     -- using the SYS_PERIOD and CAM_PERIOD.
     ---------------------------------------------------------------------
+    system_clock_process : process is
+    begin
+        clock <= '0';
+        wait for SYS_PERIOD / 2;
+        clock <= '1';
+        wait for SYS_PERIOD / 2;
+    end process system_clock_process;
+
+    camera_clock_process : process is
+    begin
+        wait for 3 ns;
+
+        loop
+            cam_clk <= '0';
+            wait for CAM_PERIOD / 2;
+            cam_clk <= '1';
+            wait for CAM_PERIOD / 2;
+        end loop;
+    end process camera_clock_process;
 
 
     ---------------------------------------------------------------------
@@ -306,7 +347,13 @@ begin
     -- but everything internal is active high.  The reset should be held 
     -- for a few cycles.
     ---------------------------------------------------------------------
-
+    reset_process : process is
+    begin
+        reset <= '1';
+        wait for 5 * SYS_PERIOD;
+        reset <= '0';
+        wait;
+    end process reset_process;
 
     ---------------------------------------------------------------------
     -- TODO: Implement the input process to read the BMP and stream it into
@@ -329,6 +376,53 @@ begin
         variable image_frame : frame_t;
     begin
         -- TODO: Implement the input process as described in the comments above.
+         -- Wait for reset
+        wait until reset = '0';
+        wait until rising_edge(clock);
+
+        -- Read image
+        read_bmp(IMAGE_FILE, image_frame);
+
+        -- Test every filter
+        for N in 0 to N_FILTERS - 1 loop
+
+            wait until rising_edge(cam_clk);
+            cam_vs <= '1';
+            wait until rising_edge(cam_clk);
+            cam_de <= '1';
+
+            for i in 0 to N_PIXELS - 1 loop
+                cam_pixel <= image_frame(i);
+                wait until rising_edge(cam_clk);
+            end loop;
+
+            cam_de <= '0';
+            cam_vs <= '0';
+
+            wait until rising_edge(cam_clk);
+
+            wait for 5 * SYS_PERIOD;
+
+            frame_ready <= '1';
+
+            wait until frame_done = '1';
+            frame_ready <= '0';
+
+            wait until frame_done = '0';
+
+            if N < N_FILTERS - 1 then
+                keys_n <= "10";
+
+                wait for (DEBOUNCE_TICKS + 5) * SYS_PERIOD;
+
+                keys_n <= "11";
+
+                wait for 5 * SYS_PERIOD;
+            end if;
+
+        end loop;
+
+        wait;
 
     end process input_process;
 
